@@ -10,7 +10,7 @@ const connection = mysql.createPool({
     password: dbConfig.PASSWORD,
     database: dbConfig.DB,
     insecureAuth: true,
-    charset: 'utf8mb4_unicode_ci'
+    charset: 'utf8mb4_unicode_ci',
 });
 
 module.exports = connection;

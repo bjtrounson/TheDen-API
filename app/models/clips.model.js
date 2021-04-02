@@ -1,19 +1,19 @@
 const sql = require("./db.js");
 
-const Clips = function (clip) {
+const Clip = function (clip) {
     this.id = clip.id;
     this.title = clip.title;
-    this.broadcasterName = clip.broadcasterName;
-    this.creatorName = clip.creatorName;
-    this.createdAt = clip.createdAt;
-    this.thumbnailUrl = clip.thumbnailUrl;
-    this.clipUrl = clip.clipUrl;
-    this.mp4Url = clip.mp4Url;
-    this.videoId = clip.videoId;
-    this.clipId = clip.clipId;
+    this.broadcaster_name = clip.broadcaster_name;
+    this.creator_name = clip.creator_name;
+    this.created_at = clip.created_at;
+    this.thumbnail_url = clip.thumbnail_url;
+    this.clip_url = clip.clip_url;
+    this.mp4_url = clip.mp4_url;
+    this.video_id = clip.video_id;
+    this.clip_id = clip.clip_id;
 };
 
-Clips.allClips = result => {
+Clip.allClips = result => {
     sql.query({
         sql: 'SELECT * FROM `clips`',
         timeout: 40000
@@ -29,7 +29,7 @@ Clips.allClips = result => {
     });
 };
 
-Clips.findClip = (clipId, result) => {
+Clip.findClip = (clipId, result) => {
     sql.query({
         sql: 'SELECT * FROM `clips` WHERE clip_id = ?',
         timeout: 40000
@@ -50,4 +50,37 @@ Clips.findClip = (clipId, result) => {
     });
 };
 
-module.exports = Clips;
+Clip.addClip = async (newClip, result) => { 
+    sql.query({
+        sql: 'INSERT INTO clips SET ?',
+        timeout: 40000
+    }, [newClip], (err, res) => { 
+            if (err) { 
+                console.log("error", err);
+                result(err, null);
+                return;
+            }
+
+            console.log("add clip", { id: res.insertId, ...newClip })
+            result(null, { id: res.insertId, ...newClip })
+    })
+}
+
+Clip.saveClip = async (clipId, mp4Url, thumbUrl) => { 
+    const fetch = require('node-fetch');
+    const fs = require('fs');
+    
+    const videoResponse = await fetch(mp4Url);
+    const videoBuffer = await videoResponse.buffer();
+
+    const imageResponse = await fetch(thumbUrl);
+    const imageBuffer = await imageResponse.buffer();
+
+    await fs.writeFile(`public/video/${clipId}.mp4`, videoBuffer, () => 
+        console.log(`finished downloading video!`));
+    
+    await fs.writeFile(`public/image/${clipId}.jpg`, imageBuffer, () => 
+        console.log(`finished downloading image!`));
+}
+
+module.exports = Clip;
